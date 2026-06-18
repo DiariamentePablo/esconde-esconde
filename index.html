@@ -96,49 +96,7 @@
     <button type="button" id="reiniciar" disabled>Nova Partida</button>
     <p class="conn" id="conn"></p>
 
-    <script>
-        const protocolo = location.protocol === "https:" ? "wss:" : "ws:";
-        const ws = new WebSocket(`${protocolo}//${location.host}`);
-
-        const statusEl = document.getElementById("status");
-        const connEl = document.getElementById("conn");
-        const reiniciarBtn = document.getElementById("reiniciar");
-        const voceEl = document.getElementById("voce");
-        const tabuleiroEl = document.getElementById("tabuleiro");
-
-        for (let i = 0; i < 49; i += 1) {
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.dataset.pos = String(i);
-            btn.textContent = "";
-            tabuleiroEl.appendChild(btn);
-        }
-
-        function renderizar(estado) {
-            
-        }
-
-        ws.addEventListener("open", () => {
-            connEl.textContent = "Conectado";
-        })
-
-        ws.addEventListener("close", () => {
-            connEl.textContent = "Desconectado";
-            statusEl.textContent = "Conexão Perdida";
-        })
-
-        ws.addEventListener("message", (ev) => {
-            let msg;
-            try {
-                msg = JSON.parse(ev.data);
-            } catch (error) {
-                return;
-            }
-            if (msg.tipo === "estado") {
-                renderizar(msg);
-            }
-        })
-    </script>
+    <script src="client.js"></script>
 </body>
 
 </html>

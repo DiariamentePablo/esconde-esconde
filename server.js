@@ -4,23 +4,13 @@ const path = require("path");
 const { WebSocketServer, WebSocket } = require("ws");
 
 const PORT = 3000;
-const LINHAS = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-];
 
 const app = express();
 const servidor = http.createServer(app);
 const wss = new WebSocketServer({ server: servidor });
 
 const jogadores = new Map();
-let tabuleiro = Array(9).fill("");
+let tabuleiro = Array(49).fill("");
 let vez = "X";
 let status = "aguardando";
 let vencedor = null;
@@ -147,5 +137,5 @@ wss.on("connection", (socket) => {
 })
 
 servidor.listen(PORT, () => {
-    console.log(`Jogo da velha: http://localhost:${PORT}`);
+    console.log(`Esconde-Esconde: http://localhost:${PORT}`);
 })

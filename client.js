@@ -70,6 +70,12 @@ ws.addEventListener("close", () => {
   statusEl.textContent = "Conexão Perdida";
 });
 
+reiniciarBtn.addEventListener("click", () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ tipo: "reiniciar" }));
+});
+
+
 ws.addEventListener("message", (ev) => {
   let msg;
   try {

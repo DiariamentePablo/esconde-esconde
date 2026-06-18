@@ -172,10 +172,17 @@ wss.on("connection", (socket) => {
       enviar(socket, { tipo: "erro", texto: "Envie JSON válido" });
       return;
     }
+
     if (msg.tipo === "movimento") {
       processarMovimento(socket, Number(msg.destino));
     }
+
+    if (msg.tipo === "reiniciar") {
+      iniciarPartida();        // recria o estado inicial
+      broadcastEstado();       // envia para todos os clientes
+    }
   });
+
 
   socket.on("close", () => {
     jogadores.delete(socket);

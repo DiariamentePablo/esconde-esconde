@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da velha — WebSocket</title>
+    <style>
+        :root {
+            font-family: system-ui, Segoe UI, sans-serif;
+            background: #0f1419;
+            color: #e7ecf1;
+        }
+
+        body {
+            margin: 0;
+            padding: 1.25rem;
+            max-width: 420px;
+            margin-inline: auto;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin: 0 0 0.75rem;
+        }
+
+        #status {
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            min-height: 1.4em;
+        }
+
+        #voce {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-bottom: 1rem;
+        }
+
+        #tabuleiro {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        #tabuleiro button {
+            aspect-ratio: 1;
+            font-size: 2rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid #2d3a47;
+            background: #1a2332;
+            color: #8ec5ff;
+            cursor: pointer;
+        }
+
+        #tabuleiro button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        #tabuleiro button.o {
+            color: #ffb4b4;
+        }
+
+        #reiniciar {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            background: #3d8bfd;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #reiniciar:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .conn {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Jogo da Velha</h1>
+    <p id="status">Conectando</p>
+    <p id="voce"></p>
+    <div id="tabuleiro"></div>
+    <button type="button" id="reiniciar" disabled>Nova Partida</button>
+    <p class="conn" id="conn"></p>
+
+    <script>
+        const protocolo = location.protocol === "https:" ? "wss:" : "ws:";
+        const ws = new WebSocket(`${protocolo}//${location.host}`);
+
+        const statusEl = document.getElementById("status");
+        const connEl = document.getElementById("conn");
+        const reiniciarBtn = document.getElementById("reiniciar");
+        const voceEl = document.getElementById("voce");
+        const tabuleiroEl = document.getElementById("tabuleiro");
+
+        let estadoAtual = null;
+        let meuSimbolo = null;
+
+        for (let i = 0; i < 9; i += 1) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.dataset.pos = String(i);
+            btn.addEventListener("click", () => {
+                if (!ws || ws.readyState !== WebSocket.OPEN) return;
+                ws.send(JSON.stringify({ tipo: "jogada", posicao: i }));
+            })
+            tabuleiroEl.appendChild(btn);
+        }
+
+        function renderizar(estado) {
+            estadoAtual = estado;
+            meuSimbolo = estado.voce;
+            statusEl.textContent = estado.mensagem || "";
+            voceEl.textContent = estado.voce ? `Você joga com ${estado.voce}` : "Espectador";
+            reiniciarBtn.disabled = estado.status !== "fim";
+
+            const botoes = tabuleiroEl.querySelectorAll("button");
+            botoes.forEach((btn, i) => {
+                const valor = estado.tabuleiro[i] || "";
+                btn.textContent = valor;
+                btn.classList.toggle("o", valor === "O");
+                const possoJogar = estado.status === "jogando" && estado.voce === estado.vez && !valor;
+                btn.disabled = !possoJogar;
+            })
+        }
+
+        ws.addEventListener("open", () => {
+            connEl.textContent = "Conectado";
+        })
+
+        ws.addEventListener("close", () => {
+            connEl.textContent = "Desconectado";
+            statusEl.textContent = "Conexão Perdida";
+        })
+
+        ws.addEventListener("message", (ev) => {
+            let msg;
+            try {
+                msg = JSON.parse(ev.data);
+            } catch (error) {
+                return;
+            }
+            if (msg.tipo === "estado") {
+                renderizar(msg);
+            }
+        })
+    </script>
+</body>
+
+</html>
